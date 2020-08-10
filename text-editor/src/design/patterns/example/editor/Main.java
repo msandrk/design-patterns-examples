@@ -16,7 +16,7 @@ public class Main {
 				
 				@Override
 				public void run() {
-					TextEditorModel model = new TextEditorModel("Marko\nradi\nnesto");
+					TextEditorModel model = new TextEditorModel("Marko Šandrk\nradi\nnesto");
 					TextEditor te = new TextEditor(model);
 					te.setLocation(20, 20);
 					te.setVisible(true);

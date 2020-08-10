@@ -51,4 +51,9 @@ public class Location {
 	public void addToY(int deltaY) {
 		this.y += deltaY;
 	}
+	
+	@Override
+	public String toString() {
+		return "(" + this.x + ", " + this.y + ")";
+	}
 }
