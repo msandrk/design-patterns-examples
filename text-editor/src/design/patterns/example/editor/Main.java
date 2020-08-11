@@ -16,38 +16,15 @@ public class Main {
 				
 				@Override
 				public void run() {
-					TextEditorModel model = new TextEditorModel("Marko Šandrk\nradi\nnesto");
+					TextEditorModel model = new TextEditorModel("Uspješno napravljen i iterator!\nIdemo dalje na sljedeći zadatak...");
 					TextEditor te = new TextEditor(model);
-					te.setLocation(20, 20);
+					te.setLocation(100, 80);
 					te.setVisible(true);
-//					te.addKeyListener(new KeyListener() {
-//						
-//						@Override
-//						public void keyTyped(KeyEvent arg0) {
-//							// TODO Auto-generated method stub
-//							
-//						}
-//						
-//						@Override
-//						public void keyReleased(KeyEvent arg0) {
-//							if(arg0.getKeyCode() == KeyEvent.VK_ENTER) {
-//								te.setVisible(false);
-//								System.exit(0);
-//							}
-//							
-//						}
-//						
-//						@Override
-//						public void keyPressed(KeyEvent arg0) {
-//							// TODO Auto-generated method stub
-//							
-//						}
-//					
-//					});
 				}
 			});
 		} catch (InvocationTargetException | InterruptedException e) {
 			e.printStackTrace();
 		}
+		
 	}
 }

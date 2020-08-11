@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import design.patterns.example.editor.model.iterator.AllLinesIterator;
+import design.patterns.example.editor.model.iterator.LineIterator;
+import design.patterns.example.editor.model.iterator.RangeLinesIterator;
+
 public class TextEditorModel {
 	List<String> lines;
 	LocationRange selectionRange;
@@ -40,13 +44,19 @@ public class TextEditorModel {
 		this.cursorLocation = cursorLocation;
 	}
 	
-//	public void setCursorX(int x) {
-//		this.cursorLocation.setX(x);
-//	}
-//	
-//	public void setCursorY(int y) {
-//		this.cursorLocation.setY(y);
-//	}
-//	
+	public LineIterator allLines() {
+		return new AllLinesIterator(this);
+	}
 	
+	public LineIterator linesRange(int index1, int index2) {
+		if(index2 <= index1) {
+			int tmp = index1;
+			index1 = index2;
+			index2 = tmp;
+		}
+		index1 = index1 < 0 ? 0 : index1;
+		index2 = index2 > this.lines.size() ? this.lines.size() : index2;
+		return new RangeLinesIterator(this, index1, index2);
+	}
+		
 }
