@@ -4,20 +4,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import design.patterns.example.editor.TextEditor;
 import design.patterns.example.editor.model.iterator.AllLinesIterator;
 import design.patterns.example.editor.model.iterator.LineIterator;
 import design.patterns.example.editor.model.iterator.RangeLinesIterator;
 
 public class TextEditorModel {
-	List<String> lines;
-	LocationRange selectionRange;
-	Location cursorLocation;
+	private List<String> lines;
+	private LocationRange selectionRange;
+	private Location cursorLocation;
 	
 	public TextEditorModel(String text) {
 		super();
 		lines = new ArrayList<String>(Arrays.asList(text.split("\n")));
 		selectionRange = new LocationRange();
-		cursorLocation = new Location(1, 0);
+		cursorLocation = new Location(TextEditor.MARGIN_LEFT_RIGHT, TextEditor.MARGIN_TOP_BOTTOM);
 	}
 
 	public List<String> getLines() {

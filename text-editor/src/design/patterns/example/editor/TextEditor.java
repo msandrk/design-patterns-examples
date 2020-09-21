@@ -12,8 +12,8 @@ import design.patterns.example.editor.model.iterator.LineIterator;
 
 public class TextEditor extends JFrame {
 	private static final long serialVersionUID = 1L;
-	private static final int MARGIN_TOP_BOTTOM = 45;
-	private static final int MARGIN_LEFT_RIGHT = 5;
+	public static final int MARGIN_TOP_BOTTOM = 45;
+	public static final int MARGIN_LEFT_RIGHT = 5;
 	private TextEditorModel model;
 	
 	

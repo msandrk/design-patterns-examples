@@ -21,37 +21,29 @@ public class Location {
 		return y;
 	}
 
-
 	public void setY(int y) {
 		this.y = y;
 	}
-
-
+	
 
 	public void incrementX() {
-		addToX(1);
+		x++;
 	}
 	
 	public void decrementX() {
-		addToX(-1);
+		x--;
 	}
 	
-	public void addToX(int deltaX) {
-		this.x += deltaX;
-	}
 	
 	public void incrementY() {
-		addToY(1);
+		y++;
 	}
 	
 	public void decrementY() {
-		addToY(-1);
+		y--;
 	}
 	
-	public void addToY(int deltaY) {
-		this.y += deltaY;
-	}
-	
+
 	@Override
 	public String toString() {
 		return "(" + this.x + ", " + this.y + ")";
