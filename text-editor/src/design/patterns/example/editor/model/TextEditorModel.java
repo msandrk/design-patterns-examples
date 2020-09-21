@@ -101,6 +101,16 @@ public class TextEditorModel {
 		}
 	}
 	
+	public void moveCursorDown() {
+		if(cursorLocation.getY() < lines.size()) {
+			cursorLocation.incrementY();
+			if(cursorLocation.getX() > lines.get(cursorLocation.getY()).length()) {
+				cursorLocation.setX(lines.get(cursorLocation.getY()).length());
+			}
+			notifyCursorObservers();
+		}
+	}
+	
 	public void notifyCursorObservers() {
 		for(CursorObserver o : cursorObservers) {
 			o.updateCursorLocation(cursorLocation);
