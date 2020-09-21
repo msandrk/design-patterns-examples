@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import design.patterns.example.editor.TextEditor;
 import design.patterns.example.editor.model.iterator.AllLinesIterator;
 import design.patterns.example.editor.model.iterator.LineIterator;
 import design.patterns.example.editor.model.iterator.RangeLinesIterator;
@@ -21,7 +20,7 @@ public class TextEditorModel {
 		super();
 		lines = new ArrayList<String>(Arrays.asList(text.split("\n")));
 		selectionRange = new LocationRange();
-		cursorLocation = new Location(TextEditor.MARGIN_LEFT_RIGHT, TextEditor.MARGIN_TOP_BOTTOM);
+		cursorLocation = new Location(0, 0);
 		cursorObservers = new LinkedList<CursorObserver>();
 	}
 
@@ -49,6 +48,10 @@ public class TextEditorModel {
 		this.cursorLocation = cursorLocation;
 	}
 	
+	public void setCursorLocation(int x, int y) {
+		setCursorLocation(new Location(x, y));
+	}
+	
 	//ITERATORS
 	
 	public LineIterator allLines() {
@@ -71,11 +74,11 @@ public class TextEditorModel {
 	public void moveCursorLeft() {
 		if(cursorLocation.getX() > 0) {
 			cursorLocation.decrementX();
-			notifyCursorObservers();
+			this.notifyCursorObservers();
 		} else if (cursorLocation.getY() > 0) {
 			cursorLocation.decrementY();
 			cursorLocation.setX(lines.get(cursorLocation.getY()).length());
-			notifyCursorObservers();
+			this.notifyCursorObservers();
 		}
 	}
 	
@@ -87,7 +90,7 @@ public class TextEditorModel {
 				cursorLocation.incrementY();
 				cursorLocation.setX(0);
 			}
-			notifyCursorObservers();
+			this.notifyCursorObservers();
 		}
 	}
 	
@@ -97,7 +100,7 @@ public class TextEditorModel {
 			if (cursorLocation.getX() > lines.get(cursorLocation.getY()).length()) {
 				cursorLocation.setX(lines.get(cursorLocation.getY()).length());
 			}
-			notifyCursorObservers();
+			this.notifyCursorObservers();
 		}
 	}
 	
@@ -107,13 +110,24 @@ public class TextEditorModel {
 			if(cursorLocation.getX() > lines.get(cursorLocation.getY()).length()) {
 				cursorLocation.setX(lines.get(cursorLocation.getY()).length());
 			}
-			notifyCursorObservers();
+			this.notifyCursorObservers();
 		}
 	}
 	
+	// Cursor observers methods
+	
 	public void notifyCursorObservers() {
 		for(CursorObserver o : cursorObservers) {
-			o.updateCursorLocation(cursorLocation);
+			o.updateCursorLocation();
 		}
 	}
+	
+	public void attachCursorObserver(CursorObserver o) {
+		cursorObservers.add(o);
+	}
+	
+	public void dettachCursorObserver(CursorObserver o) {
+		cursorObservers.remove(o);
+	}
+	
 }
