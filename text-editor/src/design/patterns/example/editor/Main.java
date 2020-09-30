@@ -16,15 +16,14 @@ public class Main {
 				
 				@Override
 				public void run() {
-					TextEditorModel model = new TextEditorModel("Uspješno napravljen i iterator!\nIdemo dalje na sljedeći zadatak...");
+					TextEditorModel model = new TextEditorModel("DEMO\n\nMultiline text\nFor demonstartion purposes\n");
 					TextEditor te = new TextEditor(model);
-					te.setLocation(100, 80);
+					te.setLocation(200, 80);
 					te.setVisible(true);
 				}
 			});
 		} catch (InvocationTargetException | InterruptedException e) {
 			e.printStackTrace();
 		}
-		
 	}
 }

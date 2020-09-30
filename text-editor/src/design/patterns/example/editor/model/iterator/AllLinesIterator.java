@@ -22,12 +22,6 @@ public class AllLinesIterator implements LineIterator {
 
 	@Override
 	public String next() {
-//		try {
-//			String element = lines.get(currIndex++);
-//			return element;
-//		} catch (IndexOutOfBoundsException e) {
-//			throw new NoSuchElementException();
-//		}
 		if(!this.hasNext()) {
 			throw new NoSuchElementException("Trying to access element beyond the end of the collection!");
 		}

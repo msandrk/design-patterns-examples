@@ -1,6 +1,6 @@
 package design.patterns.example.editor.model;
 
-public class Location {
+public class Location implements Comparable<Location>{
 	private int x;
 	private int y;
 
@@ -57,4 +57,41 @@ public class Location {
 	public String toString() {
 		return "(" + this.x + ", " + this.y + ")";
 	}
+
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + x;
+		result = prime * result + y;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
+		if (this == obj)
+			return true;
+		if (this.getClass() != obj.getClass())
+			return false;
+		Location other = (Location) obj;
+		if (x != other.x)
+			return false;
+		if (y != other.y)
+			return false;
+		return true;
+	}
+
+	@Override
+	public int compareTo(Location loc) {
+		if(y != loc.getY()) {
+			return y - loc.getY();
+		} else if(x != loc.getX()) {
+			return x - loc.getX();
+		}
+		return 0;
+	}
+
 }
