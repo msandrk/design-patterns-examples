@@ -43,7 +43,7 @@ public class TextEditorModel {
 		this.selectionRange = new LocationRange(selectionRange);
 	}
 	
-	public void setDeafualtSelectionRange() {
+	public void setDefaultSelectionRange() {
 		this.setSelectionRange(new LocationRange());
 	}
 	
@@ -235,4 +235,33 @@ public class TextEditorModel {
 		this.notifyTextObservers();
 	}
 	
+	public void insert(char c) {
+		int lineNumber = cursorLocation.getY();
+		int insertAt = cursorLocation.getX();
+		String line = lines.remove(lineNumber);
+		StringBuilder sb = new StringBuilder(line.substring(0, insertAt));
+		if(c == '\n') {
+			lines.add(lineNumber, sb.toString());
+			lines.add(lineNumber + 1, line.substring(insertAt));
+		} else {
+			sb.append(c);
+			sb.append(line.substring(insertAt < line.length() ? insertAt : line.length()));
+			lines.add(lineNumber, sb.toString());			
+		}
+		moveCursorRight();
+		notifyTextObservers();
+	}
+	
+	public void insert(String s) {
+		List<String> newLines = Arrays.asList(s.split("\n"));
+		lines.addAll(cursorLocation.getY(), newLines);
+		cursorLocation.setY(cursorLocation.getY() + newLines.size() - 1);
+		int cursorX = cursorLocation.getX();
+		if(cursorX >= newLines.get(newLines.size() - 1).length()) {
+			cursorX = newLines.get(newLines.size() - 1).length();
+		}
+		cursorLocation.setX(cursorX);
+		deleteAfter();
+		notifyTextObservers();
+	}
 }

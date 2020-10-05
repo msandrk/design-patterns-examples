@@ -9,6 +9,7 @@ import java.awt.event.KeyListener;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+
 import design.patterns.example.editor.model.Location;
 import design.patterns.example.editor.model.LocationRange;
 import design.patterns.example.editor.model.TextEditorModel;
@@ -21,6 +22,7 @@ public class TextEditor extends JFrame implements CursorObserver, TextObserver {
 	public static final int MARGIN_TOP_BOTTOM = 45;
 	public static final int MARGIN_LEFT_RIGHT = 5;
 	private TextEditorModel model;
+	
 
 	public TextEditor(TextEditorModel model) {
 		this.model = model;
@@ -28,19 +30,40 @@ public class TextEditor extends JFrame implements CursorObserver, TextObserver {
 				model.getLines().size() - 1);
 		model.attachCursorObserver(this);
 		model.attachTextObserver(this);
+		this.initGUI();
+		this.initKeyListeners();
+	}
+
+	private void initGUI() {
 		this.setTitle("GoF Text Editor");
 		this.setSize(600, 400);
+		this.setLocationRelativeTo(null);
 		this.getContentPane().setBackground(Color.WHITE);
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+	}
 
+	private void initKeyListeners() {
 		this.addKeyListener(new KeyListener() {
 
 			@Override
 			public void keyPressed(KeyEvent e) {
+				// if key is alphanumeric (ASCII signs), space or enter, call insert
+				if(e.getKeyChar() >= 33 && e.getKeyChar() <= 126 
+						|| e.getKeyCode() == KeyEvent.VK_SPACE
+						|| e.getKeyCode() == KeyEvent.VK_ENTER) {
+					
+					if(!model.getSelectionRange().isDefault()) {
+						model.deleteRange(model.getSelectionRange());
+					}
+
+					model.setDefaultSelectionRange();
+					model.insert(e.getKeyChar());
+				}
 				if (e.isShiftDown()) {
 					LocationRange range = model.getSelectionRange();
 					Location rangeStart = range.getStart();
 					Location rangeEnd = range.getEnd();
+
 					if (e.getKeyCode() == KeyEvent.VK_LEFT) {
 						if (range.isDefault() || rangeStart.compareTo(rangeEnd) == 0) {
 							Location end = model.getCursorLocation();
@@ -79,14 +102,17 @@ public class TextEditor extends JFrame implements CursorObserver, TextObserver {
 						}
 
 					} else if (e.getKeyCode() == KeyEvent.VK_UP) {
+
 						if (range.isDefault() || rangeStart.equals(rangeEnd)) {
 							range.setEnd(model.getCursorLocation());
 							model.moveCursorUp();
 							range.setStart(model.getCursorLocation());
 						} else {
+							Location prevCursorLoc = model.getCursorLocation();
 							model.moveCursorUp();
 							Location cursorLocation = model.getCursorLocation();
-							if (rangeStart.equals(cursorLocation) && rangeStart.compareTo(rangeEnd) == 1) {
+							if (!prevCursorLoc.equals(cursorLocation) && rangeStart.equals(cursorLocation)
+									&& rangeEnd.compareTo(rangeStart) == 1) {
 								range = new LocationRange();
 							} else if (rangeStart.compareTo(cursorLocation) > 0) {
 								range.setStart(cursorLocation);
@@ -100,30 +126,36 @@ public class TextEditor extends JFrame implements CursorObserver, TextObserver {
 							model.moveCursorDown();
 							range = new LocationRange(start, model.getCursorLocation());
 						} else {
+							Location prevCursorLoc = model.getCursorLocation();
 							model.moveCursorDown();
 							Location cursorLocation = model.getCursorLocation();
-							if(rangeEnd.equals(cursorLocation) && rangeEnd.compareTo(rangeStart) == 1) {
+							if (!prevCursorLoc.equals(cursorLocation) && rangeEnd.equals(cursorLocation)
+									&& rangeEnd.compareTo(rangeStart) == 1) {
 								range = new LocationRange();
-							} else if(rangeEnd.compareTo(cursorLocation) > 0) {
+							} else if (rangeEnd.compareTo(cursorLocation) > 0) {
 								range.setStart(cursorLocation);
-							} else if(rangeEnd.compareTo(cursorLocation) < 0) {
+							} else if (rangeEnd.compareTo(cursorLocation) < 0) {
 								range.setEnd(cursorLocation);
 							}
 						}
 					}
+					if (!range.isDefault() && range.getStart().equals(range.getEnd())) {
+						range = new LocationRange();
+					}
 					model.setSelectionRange(range);
+					paint(getGraphics());
 				} else {
 					if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-						model.setDeafualtSelectionRange();
+						model.setDefaultSelectionRange();
 						model.moveCursorLeft();
 					} else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-						model.setDeafualtSelectionRange();
+						model.setDefaultSelectionRange();
 						model.moveCursorRight();
 					} else if (e.getKeyCode() == KeyEvent.VK_UP) {
-						model.setDeafualtSelectionRange();
+						model.setDefaultSelectionRange();
 						model.moveCursorUp();
 					} else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-						model.setDeafualtSelectionRange();
+						model.setDefaultSelectionRange();
 						model.moveCursorDown();
 					} else if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
 						if (model.getSelectionRange().isDefault()) {
@@ -131,14 +163,16 @@ public class TextEditor extends JFrame implements CursorObserver, TextObserver {
 						} else {
 							model.deleteRange(model.getSelectionRange());
 						}
-						model.setDeafualtSelectionRange();
+						model.setDefaultSelectionRange();
+						paint(getGraphics());
 					} else if (e.getKeyCode() == KeyEvent.VK_DELETE) {
 						if (model.getSelectionRange().isDefault()) {
 							model.deleteAfter();
 						} else {
 							model.deleteRange(model.getSelectionRange());
 						}
-						model.setDeafualtSelectionRange();
+						model.setDefaultSelectionRange();
+						paint(getGraphics());
 					}
 				}
 			}
@@ -160,28 +194,63 @@ public class TextEditor extends JFrame implements CursorObserver, TextObserver {
 		super.paint(g);
 		g.setColor(Color.BLACK);
 
-		Location paintLocation = new Location(TextEditor.MARGIN_LEFT_RIGHT, TextEditor.MARGIN_TOP_BOTTOM);
-		LineIterator it = model.allLines();
 		FontMetrics fontMetrics = g.getFontMetrics();
-		while (it.hasNext()) {
+		Location paintLoc = new Location(TextEditor.MARGIN_LEFT_RIGHT, TextEditor.MARGIN_TOP_BOTTOM);
+		LocationRange selectRange = model.getSelectionRange();
+
+		LineIterator it = model.allLines();
+
+		for (int i = 0; it.hasNext(); i++) {
 			String currLine = it.next();
-			paintLocation.setX(TextEditor.MARGIN_LEFT_RIGHT);
+			paintLoc.setX(TextEditor.MARGIN_LEFT_RIGHT);
+			
+			// if there is an active text selection range
+			if (!selectRange.isDefault() && i >= selectRange.getStart().getY()
+					&& i <= selectRange.getEnd().getY()) {
+				
+				int startX = TextEditor.MARGIN_LEFT_RIGHT - 1;	// -1 for prettier print
+				int endX = TextEditor.MARGIN_LEFT_RIGHT + fontMetrics.stringWidth(currLine);
+				int startY = paintLoc.getY();
 
-			g.drawString(currLine, paintLocation.getX(), paintLocation.getY());
-			paintLocation.setY(paintLocation.getY() + fontMetrics.getHeight());
+				Location selectionStart = selectRange.getStart();
+				Location selectionEnd = selectRange.getEnd();
+				
+				// if first row of selected text, adjust starting x-coordinate and ending x-coordinate
+				if (i == selectionStart.getY()) {
+					int endIndex = selectionStart.getX() < currLine.length() ? selectionStart.getX()
+							: currLine.length();
+					startX += fontMetrics.stringWidth(currLine.substring(0, endIndex));
+				}
+				
+				// if last row of selected text, adjust ending x-coordinate
+				if (i == selectionEnd.getY()) {
+					endX = fontMetrics.stringWidth(currLine.substring(0, selectionEnd.getX()));
+					endX += TextEditor.MARGIN_LEFT_RIGHT;
+				}
+				
+				// add 30 to all rgb components of light grey to make it brighter
+				int rgbValue = Color.LIGHT_GRAY.getRed() + 30;
+				Color selectionColor = new Color(rgbValue, rgbValue, rgbValue);
+				
+				g.setColor(selectionColor);
+				g.fillRect(startX, startY - fontMetrics.getHeight() + 3, endX - startX, fontMetrics.getHeight());
+				g.setColor(Color.BLACK);
+			}
+			
+			g.drawString(currLine, paintLoc.getX(), paintLoc.getY());
+			paintLoc.setY(paintLoc.getY() + fontMetrics.getHeight());
 		}
+		// draw cursor
+		paintLoc = model.getCursorLocation();
+		String line = model.getLines().get(paintLoc.getY());
 
-		paintLocation = model.getCursorLocation();
-		String currLine = model.getLines().get(paintLocation.getY());
-
-		paintLocation.setX(g.getFontMetrics().stringWidth(currLine.substring(0, paintLocation.getX()))
+		paintLoc.setX(fontMetrics.stringWidth(line.substring(0, paintLoc.getX()))
 				+ TextEditor.MARGIN_LEFT_RIGHT);
-		paintLocation
-				.setY((paintLocation.getY() - 1) * g.getFontMetrics().getHeight() + TextEditor.MARGIN_TOP_BOTTOM + 3);
+		paintLoc.setY((paintLoc.getY() - 1) * fontMetrics.getHeight() + TextEditor.MARGIN_TOP_BOTTOM
+				+ fontMetrics.getDescent());
 
-		g.drawLine(paintLocation.getX(), paintLocation.getY(), paintLocation.getX(),
-				paintLocation.getY() + g.getFontMetrics().getHeight() - 3);
-
+		g.drawLine(paintLoc.getX(), paintLoc.getY(), paintLoc.getX(), 
+				paintLoc.getY() + fontMetrics.getHeight() - 2);
 	}
 
 	@Override

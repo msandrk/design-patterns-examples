@@ -16,14 +16,16 @@ public class Main {
 				
 				@Override
 				public void run() {
-					TextEditorModel model = new TextEditorModel("DEMO\n\nMultiline text\nFor demonstartion purposes\n");
+					TextEditorModel model = new TextEditorModel("DEMO\n\nFor demonstration purposes\nMultiline text. Need a bit more text in this line\n");
 					TextEditor te = new TextEditor(model);
-					te.setLocation(200, 80);
+
 					te.setVisible(true);
+					model.insert("Some more text\nIn multiple lines");
 				}
 			});
 		} catch (InvocationTargetException | InterruptedException e) {
 			e.printStackTrace();
 		}
+		
 	}
 }
