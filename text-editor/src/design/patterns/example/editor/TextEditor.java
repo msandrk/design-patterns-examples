@@ -9,7 +9,7 @@ import java.awt.event.KeyListener;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-
+import design.patterns.example.editor.model.ClipboardStack;
 import design.patterns.example.editor.model.Location;
 import design.patterns.example.editor.model.LocationRange;
 import design.patterns.example.editor.model.TextEditorModel;
@@ -19,13 +19,14 @@ import design.patterns.example.editor.model.observer.TextObserver;
 
 public class TextEditor extends JFrame implements CursorObserver, TextObserver {
 	private static final long serialVersionUID = 1L;
-	public static final int MARGIN_TOP_BOTTOM = 45;
+	public static final int MARGIN_TOP_BOTTOM = 55;
 	public static final int MARGIN_LEFT_RIGHT = 5;
 	private TextEditorModel model;
-	
+	private ClipboardStack clipboard;
 
 	public TextEditor(TextEditorModel model) {
 		this.model = model;
+		this.clipboard = new ClipboardStack();
 		model.setCursorLocation(model.getLines().get(model.getLines().size() - 1).length(),
 				model.getLines().size() - 1);
 		model.attachCursorObserver(this);
@@ -48,16 +49,38 @@ public class TextEditor extends JFrame implements CursorObserver, TextObserver {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				// if key is alphanumeric (ASCII signs), space or enter, call insert
-				if(e.getKeyChar() >= 33 && e.getKeyChar() <= 126 
-						|| e.getKeyCode() == KeyEvent.VK_SPACE
+				if (e.getKeyChar() >= 33 && e.getKeyChar() <= 126 || e.getKeyCode() == KeyEvent.VK_SPACE
 						|| e.getKeyCode() == KeyEvent.VK_ENTER) {
-					
-					if(!model.getSelectionRange().isDefault()) {
+
+					if (!model.getSelectionRange().isDefault()) {
 						model.deleteRange(model.getSelectionRange());
 					}
 
 					model.setDefaultSelectionRange();
 					model.insert(e.getKeyChar());
+				}
+				if (e.isControlDown()) {
+					if (e.isShiftDown() && e.getKeyCode() == KeyEvent.VK_V) {
+						model.insert(clipboard.pop());
+					} else if (e.getKeyCode() == KeyEvent.VK_C) {
+						String copied = model.getSelectedText();
+						if (copied != null) {
+							clipboard.push(copied);
+						}
+					} else if (e.getKeyCode() == KeyEvent.VK_X) {
+						String cutted = model.getSelectedText();
+						if (cutted != null) {
+							clipboard.push(cutted);
+							model.deleteRange(model.getSelectionRange());
+							paint(getGraphics());
+						}
+					} else if (e.getKeyCode() == KeyEvent.VK_V) {
+//						String forPaste = clipboard.peek();
+						model.insert(clipboard.peek());
+//						Location cursor = model.getCursorLocation();
+//						model.setCursorLocation(mode, cursor.getY());
+						paint(getGraphics());
+					}
 				}
 				if (e.isShiftDown()) {
 					LocationRange range = model.getSelectionRange();
@@ -171,8 +194,6 @@ public class TextEditor extends JFrame implements CursorObserver, TextObserver {
 						} else {
 							model.deleteRange(model.getSelectionRange());
 						}
-						model.setDefaultSelectionRange();
-						paint(getGraphics());
 					}
 				}
 			}
@@ -203,40 +224,40 @@ public class TextEditor extends JFrame implements CursorObserver, TextObserver {
 		for (int i = 0; it.hasNext(); i++) {
 			String currLine = it.next();
 			paintLoc.setX(TextEditor.MARGIN_LEFT_RIGHT);
-			
-			// if there is an active text selection range
-			if (!selectRange.isDefault() && i >= selectRange.getStart().getY()
-					&& i <= selectRange.getEnd().getY()) {
-				
-				int startX = TextEditor.MARGIN_LEFT_RIGHT - 1;	// -1 for prettier print
+
+			// if there is an active text selection range, color background behind selection
+			if (!selectRange.isDefault() && i >= selectRange.getStart().getY() && i <= selectRange.getEnd().getY()) {
+
+				int startX = TextEditor.MARGIN_LEFT_RIGHT - 1; // -1 for prettier print
 				int endX = TextEditor.MARGIN_LEFT_RIGHT + fontMetrics.stringWidth(currLine);
 				int startY = paintLoc.getY();
 
 				Location selectionStart = selectRange.getStart();
 				Location selectionEnd = selectRange.getEnd();
-				
-				// if first row of selected text, adjust starting x-coordinate and ending x-coordinate
+
+				// if first row of selected text, adjust starting x-coordinate and ending
+				// x-coordinate
 				if (i == selectionStart.getY()) {
 					int endIndex = selectionStart.getX() < currLine.length() ? selectionStart.getX()
 							: currLine.length();
 					startX += fontMetrics.stringWidth(currLine.substring(0, endIndex));
 				}
-				
+
 				// if last row of selected text, adjust ending x-coordinate
 				if (i == selectionEnd.getY()) {
 					endX = fontMetrics.stringWidth(currLine.substring(0, selectionEnd.getX()));
 					endX += TextEditor.MARGIN_LEFT_RIGHT;
 				}
-				
+
 				// add 30 to all rgb components of light grey to make it brighter
 				int rgbValue = Color.LIGHT_GRAY.getRed() + 30;
 				Color selectionColor = new Color(rgbValue, rgbValue, rgbValue);
-				
+
 				g.setColor(selectionColor);
 				g.fillRect(startX, startY - fontMetrics.getHeight() + 3, endX - startX, fontMetrics.getHeight());
 				g.setColor(Color.BLACK);
 			}
-			
+
 			g.drawString(currLine, paintLoc.getX(), paintLoc.getY());
 			paintLoc.setY(paintLoc.getY() + fontMetrics.getHeight());
 		}
@@ -244,13 +265,11 @@ public class TextEditor extends JFrame implements CursorObserver, TextObserver {
 		paintLoc = model.getCursorLocation();
 		String line = model.getLines().get(paintLoc.getY());
 
-		paintLoc.setX(fontMetrics.stringWidth(line.substring(0, paintLoc.getX()))
-				+ TextEditor.MARGIN_LEFT_RIGHT);
+		paintLoc.setX(fontMetrics.stringWidth(line.substring(0, paintLoc.getX())) + TextEditor.MARGIN_LEFT_RIGHT);
 		paintLoc.setY((paintLoc.getY() - 1) * fontMetrics.getHeight() + TextEditor.MARGIN_TOP_BOTTOM
 				+ fontMetrics.getDescent());
 
-		g.drawLine(paintLoc.getX(), paintLoc.getY(), paintLoc.getX(), 
-				paintLoc.getY() + fontMetrics.getHeight() - 2);
+		g.drawLine(paintLoc.getX(), paintLoc.getY(), paintLoc.getX(), paintLoc.getY() + fontMetrics.getHeight() - 2);
 	}
 
 	@Override
@@ -262,4 +281,5 @@ public class TextEditor extends JFrame implements CursorObserver, TextObserver {
 	public void updateText() {
 		this.paint(this.getGraphics());
 	}
+
 }
